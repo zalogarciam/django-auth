@@ -1,8 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
-class ManejoUsuario(BaseUserManger):
-    def create_superuser(self, correo, nombre, apellido, password, tipoUsuario)
+class ManejoUsuario(BaseUserManager):
+    def create_superuser(self, correo, nombre, apellido, password, tipoUsuario):
         if not correo:
             raise ValueError('El usuario debe tener un correo')
         
@@ -24,7 +24,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     correo = models.EmailField(max_length=100, unique =True, null=False)
     password = models.TextField(null =False)
 
-    tipoUsuario = models.CharField(max_length=100, chices = [('ADMIN', 'ADMIN'), ('CLIENTE', 'CLIENTE')])
+    tipoUsuario = models.CharField(max_length=100, choices = [('ADMIN', 'ADMIN'), ('CLIENTE', 'CLIENTE')])
     db_column = 'tipo_usuario'
 
     is_staff = models.BooleanField(default=False)
@@ -32,7 +32,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'correo'
 
-    REQUIRE_FIELDS = ['nombre', 'apellido']
+    REQUIRE_FIELDS = ['nombre', 'apellido', 'tipoUsuario']
 
+    objects = ManejoUsuario
     class Meta:
         db_table = 'usuarios'
