@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from datetime import timedelta
 
 load_dotenv()
 
@@ -143,3 +144,13 @@ cloudinary.config(
   api_secret = environ.get('CLOUDINARY_API_SECRET'),
   secure = True
 )
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1 , minutes=15)
+}
