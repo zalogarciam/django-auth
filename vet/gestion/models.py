@@ -32,8 +32,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'correo'
 
-    REQUIRE_FIELDS = ['nombre', 'apellido', 'tipoUsuario']
+    REQUIRED_FIELDS = ['nombre', 'apellido', 'tipoUsuario']
 
-    objects = ManejoUsuario
+    objects = ManejoUsuario()
     class Meta:
         db_table = 'usuarios'
