@@ -37,3 +37,11 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     objects = ManejoUsuario()
     class Meta:
         db_table = 'usuarios'
+
+class Mascota(models.Model):
+    id = models.AutoField(primary_key=True, null=False)
+    nombre = models.TextField(null =False)
+    sexo = models.TextField(choices = [('HEMBRA', 'HEMBRA'), ('MACHO', 'MACHO')])
+    fechaNacimiento = models.DateField(db_column='fecha_nacimiento')
+    alergias = models.TextField()
+    foto = models.ImageField()
