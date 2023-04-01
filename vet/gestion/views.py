@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegistroUsuarioSerializer
-from .models import Usuario
+from .serializers import MascotaSerializer, RegistroUsuarioSerializer
+from .models import Mascota, Usuario
 from rest_framework.permissions import IsAuthenticated
 from .permissions import SoloClientes
 from cloudinary import uploader
-class RegistroUsuario(APIView):
+from rest_framework import generics
+
+class RegistroUsuario(generics.GenericAPIView):
     def post(self, request: Request): 
         serializador = RegistroUsuarioSerializer(data = request.data)
         if serializador.is_valid():
@@ -31,7 +33,7 @@ class RegistroUsuario(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST
             )
     
-class PerfilUsuario(APIView):
+class PerfilUsuario(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, SoloClientes]
     def get(self, request: Request):
         
@@ -43,18 +45,49 @@ class PerfilUsuario(APIView):
             }
         )
     
-class Mascotas(APIView):
+class MascotasView(generics.GenericAPIView):
+    serializer_class = MascotaSerializer
     permission_classes = [IsAuthenticated, SoloClientes]
+
+
     def post(self, request:Request):
         foto = request.FILES.get('foto')
-        print(foto)
-        result = uploader.upload(file = foto)
-        if result:
-            return Response(data = {
-                'message': 'Mascota creada'
+        resultado = uploader.upload(foto)
+        try:
+          data = {
+              'nombre': request.data.get('nombre'),
+              'sexo': request.data.get('sexo'),
+              'fechaNacimiento': request.data.get('fechaNacimiento'),
+              'alergias': request.data.get('alergias'),
+              'foto': resultado.get('url'),
+              'cliente': request.data.get('cliente')
+          }
 
-            }, status=status.HTTP_201_CREATED)
-        else:
-            return Response(data = {
-                'message': 'Error'
-            })
+          print('DATA', data)
+
+          serializador = MascotaSerializer(data=data)
+          if serializador.is_valid():
+              serializador.save()
+              return Response(data= {
+                  'message': 'Mascota creada exitosamente',
+                  'content': serializador.data
+              }, status=status.HTTP_201_CREATED)
+          else:
+              return Response(data={
+                  'message': 'Error al crear mascota',
+                  'content': serializador.errors
+              }, status=status.HTTP_400_BAD_REQUEST)
+          
+        except Exception as e:
+          return Response(data={
+              'message': 'Error al crear mascota',
+              'content': str(e)
+          }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def get(self, request):
+        mascotas = Mascota.objects.all()
+        serializador = MascotaSerializer(mascotas, many = True)
+        print(serializador.data)
+        return Response(data = {
+            'content': serializador.data
+        }, status= status.HTTP_200_OK)
