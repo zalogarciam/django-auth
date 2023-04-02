@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from .permissions import SoloClientes
 from cloudinary import uploader
 from rest_framework import generics
+from django.forms.models import model_to_dict
 
 class RegistroUsuario(generics.GenericAPIView):
     def post(self, request: Request): 
@@ -36,14 +37,32 @@ class RegistroUsuario(generics.GenericAPIView):
 class PerfilUsuario(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, SoloClientes]
     def get(self, request: Request):
-        
-        print(request.user)
-        print(request.auth)
+        # TODO: Devolver el usuario, NO DEVOLVER LA PASSWORD solamente el nombre, apellido, correo y tipoUsuario utilizando un serializador
+        # serializador = RegistroUsuarioSerializer(data = request.data)
+        # print(serializador)
+
+        user = Usuario.objects.filter(correo = request.user).first()
+
+        if not user:
+            return Response(
+                data = {
+                'content': 'Usuario no existe...'
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+        print(type(user))
+        serializador = RegistroUsuarioSerializer(user)
+
         return Response(
-            data = {
-            'content': ''
-            }
-        )
+                data = {
+                'content': {
+                    'nombre': serializador.data['nombre'],
+                    'apellido': serializador.data['apellido'],
+                    'correo': serializador.data['correo'],
+                    'tipoUsuario': serializador.data['tipoUsuario']
+                }
+
+                }, status=status.HTTP_200_OK
+            )
     
 class MascotasView(generics.GenericAPIView):
     serializer_class = MascotaSerializer
